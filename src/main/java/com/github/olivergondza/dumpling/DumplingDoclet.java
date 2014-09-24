@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.github.olivergondza.dumplingdoclet;
+package com.github.olivergondza.dumpling;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,6 +30,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.olivergondza.dumpling.cli.CliAccessor;
+import com.github.olivergondza.dumpling.cli.CliCommand;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.MethodDoc;
@@ -86,7 +88,12 @@ public class DumplingDoclet {
             writer = new FileWriter(out);
             header(writer, title);
             for (Doc d: docs) {
-                writer.write("### "); writer.write(d.name()); writer.write('\n');
+                String name = d instanceof ClassDoc
+                        ? ((ClassDoc) d).qualifiedTypeName()
+                        : d instanceof MethodDoc ? ((MethodDoc) d).qualifiedName() : "???"
+                ;
+
+                writer.write("### "); writer.write(name); writer.write('\n');
                 writer.write(d.commentText()); writer.write('\n');
             }
         } catch (IOException ex) {
@@ -108,10 +115,9 @@ public class DumplingDoclet {
             writer = new FileWriter(out);
             header(writer, title);
             for (ClassDoc d: docs) {
-                System.out.println((d.qualifiedTypeName());
-                System.out.println((d.qualifiedName());
-                writer.write("### "); writer.write(d.name()); writer.write('\n');
-                writer.write(d.commentText()); writer.write('\n');
+                CliCommand command = instantiateComand(d);
+                writer.write("### `"); writer.write(command.getName()); writer.write("`\n");
+                writer.write(command.getDescription()); writer.write('\n');
             }
         } catch (IOException ex) {
             throw new AssertionError(ex);
@@ -126,6 +132,31 @@ public class DumplingDoclet {
         }
     }
 
+    private static CliCommand instantiateComand(ClassDoc d) {
+        // for whatever perverted reason following code fails to create instance:
+        //      Command inst = new TopContenders.Command();
+        //      Class.forName(inst.getClass().getCanonicalName());
+
+        return CliAccessor.getHandler(d.qualifiedTypeName());
+//        CliAccessor.handlers();
+//
+//        Class<T> cls = null;
+//        try {
+//            //cls = (Class<T>) Class.forName(d.qualifiedTypeName(), true, Thread.currentThread().getContextClassLoader());
+//
+//        } catch (ClassNotFoundException ex) {
+//            throw new AssertionError(ex);
+//        }
+//
+//        try {
+//            return cls.newInstance();
+//        } catch (InstantiationException ex) {
+//            throw new AssertionError(ex);
+//        } catch (IllegalAccessException ex) {
+//            throw new AssertionError(ex);
+//        }
+    }
+
     private static void header(Writer writer, String title) throws IOException {
         writer.write("---\n");
         writer.write("title: "); writer.write(title); writer.write('\n');
@@ -134,7 +165,6 @@ public class DumplingDoclet {
         writer.write("# {{page.title}}\n");
     }
 
-//
 //    private static void record(Doc element) {
 //        for (String scope: scopes(element)) {
 //            scopesToClass.put(scope, element);
