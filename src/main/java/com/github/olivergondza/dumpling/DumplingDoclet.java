@@ -76,7 +76,7 @@ public class DumplingDoclet {
 
         printCli(new File(target, "cliCommands.md"), cliCommands, "CLI Commands");
         printDoc(new File(target, "factories.md"), factories, "Runtime factories");
-        printDoc(new File(target, "queries.md"), queries, "Queries");
+        printDoc(new File(target, "queries.md"), queries, "Predefined queries");
         printDoc(new File(target, "threadPredicates.md"), threadPredicates, "Thread predicates");
 
         return true;
