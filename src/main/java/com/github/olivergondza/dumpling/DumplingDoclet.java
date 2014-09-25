@@ -88,12 +88,7 @@ public class DumplingDoclet {
             writer = new FileWriter(out);
             header(writer, title);
             for (Doc d: docs) {
-                String name = d instanceof ClassDoc
-                        ? ((ClassDoc) d).qualifiedTypeName()
-                        : d instanceof MethodDoc ? ((MethodDoc) d).qualifiedName() : "???"
-                ;
-
-                writer.write("### "); writer.write(name); writer.write('\n');
+                writer.write("### "); writer.write(javadocLink(d, d.name())); writer.write('\n');
                 writer.write(d.commentText()); writer.write('\n');
             }
         } catch (IOException ex) {
@@ -116,7 +111,7 @@ public class DumplingDoclet {
             header(writer, title);
             for (ClassDoc d: docs) {
                 CliCommand command = instantiateComand(d);
-                writer.write("### `"); writer.write(command.getName()); writer.write("`\n");
+                writer.write("### "); writer.write(javadocLink(d, "`" + command.getName() + "`")); writer.write("\n");
                 writer.write(command.getDescription()); writer.write('\n');
             }
         } catch (IOException ex) {
@@ -133,28 +128,27 @@ public class DumplingDoclet {
     }
 
     private static CliCommand instantiateComand(ClassDoc d) {
-        // for whatever perverted reason following code fails to create instance:
-        //      Command inst = new TopContenders.Command();
-        //      Class.forName(inst.getClass().getCanonicalName());
-
         return CliAccessor.getHandler(d.qualifiedTypeName());
-//        CliAccessor.handlers();
-//
-//        Class<T> cls = null;
-//        try {
-//            //cls = (Class<T>) Class.forName(d.qualifiedTypeName(), true, Thread.currentThread().getContextClassLoader());
-//
-//        } catch (ClassNotFoundException ex) {
-//            throw new AssertionError(ex);
-//        }
-//
-//        try {
-//            return cls.newInstance();
-//        } catch (InstantiationException ex) {
-//            throw new AssertionError(ex);
-//        } catch (IllegalAccessException ex) {
-//            throw new AssertionError(ex);
-//        }
+    }
+
+    private static String javadocLink(Doc element, String title) {
+        if (element instanceof ClassDoc) {
+
+            ClassDoc cd = (ClassDoc) element;
+            String packageName = cd.containingPackage().name();
+            return String.format("[%s](./apidocs/%s/%s.html)", title, packageName.replace(".", "/"), cd.name());
+        } else if (element instanceof MethodDoc) {
+
+            MethodDoc md = ((MethodDoc) element);
+            String packageName = md.containingPackage().name();
+            String className = md.containingClass().name();
+            return String.format("[%s](./apidocs/%s/%s.html#%s%s)",
+                    title, packageName.replace(".", "/"), className, md.name(), md.signature()
+            );
+        } else {
+
+            throw new AssertionError();
+        }
     }
 
     private static void header(Writer writer, String title) throws IOException {
@@ -164,20 +158,4 @@ public class DumplingDoclet {
         writer.write("---\n");
         writer.write("# {{page.title}}\n");
     }
-
-//    private static void record(Doc element) {
-//        for (String scope: scopes(element)) {
-//            scopesToClass.put(scope, element);
-//        }
-//    }
-//
-//    private static List<String> scopes(Doc clss) {
-//        Tag[] tags = clss.tags("@documented");
-//        List<String> scopes = new ArrayList<String>(tags.length);
-//        for (Tag t: tags) {
-//            scopes.add(t.text());
-//        }
-//
-//        return scopes;
-//    }
 }
