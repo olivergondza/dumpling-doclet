@@ -77,7 +77,7 @@ public class DumplingDoclet {
         printCli(new File(target, "cliCommands.md"), cliCommands, "CLI Commands");
         printDoc(new File(target, "factories.md"), factories, "Runtime factories");
         printDoc(new File(target, "queries.md"), queries, "Queries");
-        printDoc(new File(target, "threadPredicates.md"), threadPredicates, "Thread Predicates");
+        printDoc(new File(target, "threadPredicates.md"), threadPredicates, "Thread predicates");
 
         return true;
     }
@@ -156,6 +156,7 @@ public class DumplingDoclet {
         writer.write("title: "); writer.write(title); writer.write('\n');
         writer.write("layout: default\n");
         writer.write("---\n");
+        writer.write("[Reference documentation for TAG](.)\n");
         writer.write("# {{page.title}}\n");
     }
 }
