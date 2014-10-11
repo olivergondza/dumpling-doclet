@@ -89,7 +89,7 @@ public class DumplingDoclet {
             header(writer, title);
             for (Doc d: docs) {
                 writer.write("### "); writer.write(javadocLink(d, d.name())); writer.write('\n');
-                writer.write(d.commentText()); writer.write('\n');
+                writer.write(commentText(d)); writer.write('\n');
             }
         } catch (IOException ex) {
             throw new AssertionError(ex);
@@ -125,6 +125,13 @@ public class DumplingDoclet {
                 ex.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Seems that {@link Doc#commentText()} does not remove inline tags.
+     */
+    private static String commentText(Doc doc) {
+        return doc.commentText().replaceAll("\\{@\\w+ (.*)\\}", "$1");
     }
 
     private static CliCommand instantiateComand(ClassDoc d) {
