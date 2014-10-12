@@ -40,8 +40,6 @@ import com.sun.javadoc.Type;
 
 public class DumplingDoclet {
 
-    //private static final Map<String, Doc> scopesToClass = new HashMap<String, Doc>();
-
     public static boolean start(RootDoc root) {
         final File target = new File(".");
 
@@ -83,9 +81,8 @@ public class DumplingDoclet {
     }
 
     private static void printDoc(File out, List<? extends Doc> docs, String title) {
-        FileWriter writer = null;
-        try {
-            writer = new FileWriter(out);
+        try (FileWriter writer = new FileWriter(out)) {
+
             header(writer, title);
             for (Doc d: docs) {
                 writer.write("### "); writer.write(javadocLink(d, d.name())); writer.write('\n');
@@ -93,21 +90,12 @@ public class DumplingDoclet {
             }
         } catch (IOException ex) {
             throw new AssertionError(ex);
-        } finally {
-
-            try {
-                if (writer != null) writer.close();
-            } catch (IOException ex) {
-                // TODO Auto-generated catch block
-                ex.printStackTrace();
-            }
         }
     }
 
     private static void printCli(File out, List<ClassDoc> docs, String title) {
-        FileWriter writer = null;
-        try {
-            writer = new FileWriter(out);
+        try (FileWriter writer = new FileWriter(out)) {
+
             header(writer, title);
             for (ClassDoc d: docs) {
                 CliCommand command = instantiateComand(d);
@@ -115,18 +103,9 @@ public class DumplingDoclet {
                 writer.write("\n<pre style='word-wrap: break-word'>\n");
                 writer.write(CliAccessor.usage(command));
                 writer.write("\n</pre>\n");
-                //writer.write(command.getDescription()); writer.write('\n');
             }
         } catch (IOException ex) {
             throw new AssertionError(ex);
-        } finally {
-
-            try {
-                if (writer != null) writer.close();
-            } catch (IOException ex) {
-                // TODO Auto-generated catch block
-                ex.printStackTrace();
-            }
         }
     }
 
