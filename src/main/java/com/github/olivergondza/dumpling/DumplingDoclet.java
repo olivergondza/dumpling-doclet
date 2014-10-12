@@ -112,7 +112,10 @@ public class DumplingDoclet {
             for (ClassDoc d: docs) {
                 CliCommand command = instantiateComand(d);
                 writer.write("### "); writer.write(javadocLink(d, "`" + command.getName() + "`")); writer.write("\n");
-                writer.write(command.getDescription()); writer.write('\n');
+                writer.write("\n<pre style='word-wrap: break-word'>\n");
+                writer.write(CliAccessor.usage(command));
+                writer.write("\n</pre>\n");
+                //writer.write(command.getDescription()); writer.write('\n');
             }
         } catch (IOException ex) {
             throw new AssertionError(ex);

@@ -23,6 +23,8 @@
  */
 package com.github.olivergondza.dumpling.cli;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Set;
 
 import javax.annotation.CheckForNull;
@@ -41,5 +43,17 @@ public class CliAccessor {
         }
 
         return null;
+    }
+
+    public static String usage(CliCommand handler) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(out);
+
+        // Run just to register option handlers
+        new Main().run(new String[] {"help", handler.getName()}, ProcessStream.system());
+
+        HelpCommand.printUsage(handler, ps);
+
+        return out.toString();
     }
 }
