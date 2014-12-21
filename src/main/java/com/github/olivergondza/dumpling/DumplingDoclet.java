@@ -36,6 +36,7 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Tag;
 import com.sun.javadoc.Type;
 
 public class DumplingDoclet {
@@ -121,17 +122,27 @@ public class DumplingDoclet {
     }
 
     private static String javadocLink(Doc element, String title) {
+        String formatBase = "[%s]";
+        for (Tag d: element.tags("deprecated")) {
+            String text = d.text();
+            formatBase = (text != null && !text.isEmpty())
+                    ? "[<del>%s</del> (" + text + ")]"
+                    : "[<del>%s</del>]"
+            ;
+            break;
+        }
+
         if (element instanceof ClassDoc) {
 
             ClassDoc cd = (ClassDoc) element;
             String packageName = cd.containingPackage().name();
-            return String.format("[%s](./apidocs/%s/%s.html)", title, packageName.replace(".", "/"), cd.name());
+            return String.format(formatBase + "(./apidocs/%s/%s.html)", title, packageName.replace(".", "/"), cd.name());
         } else if (element instanceof MethodDoc) {
 
             MethodDoc md = ((MethodDoc) element);
             String packageName = md.containingPackage().name();
             String className = md.containingClass().name();
-            return String.format("[%s](./apidocs/%s/%s.html#%s%s)",
+            return String.format(formatBase + "(./apidocs/%s/%s.html#%s%s)",
                     title, packageName.replace(".", "/"), className, md.name(), md.signature()
             );
         } else {
