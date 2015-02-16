@@ -77,8 +77,22 @@ public class DumplingDoclet {
         printDoc(new File(target, "factories.md"), factories, "Runtime factories");
         printDoc(new File(target, "queries.md"), queries, "Predefined queries");
         printDoc(new File(target, "threadPredicates.md"), threadPredicates, "Thread predicates");
+        printGroovyDoc(new File(target, "cliExports.md"));
 
         return true;
+    }
+
+    private static void printGroovyDoc(File out) {
+        final String usage = CliAccessor.getGroovyBindingUsage();
+
+        try (FileWriter writer = new FileWriter(out)) {
+            header(writer, "Groovy CLI exposed API");
+            writer.write("```\n");
+            writer.write(usage);
+            writer.write("```\n");
+        } catch (IOException ex) {
+            throw new AssertionError(ex);
+        }
     }
 
     private static void printDoc(File out, List<? extends Doc> docs, String title) {

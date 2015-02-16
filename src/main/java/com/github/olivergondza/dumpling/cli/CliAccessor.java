@@ -23,11 +23,18 @@
  */
 package com.github.olivergondza.dumpling.cli;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.Set;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 public class CliAccessor {
 
@@ -50,10 +57,39 @@ public class CliAccessor {
         PrintStream ps = new PrintStream(out);
 
         // Run just to register option handlers
-        new Main().run(new String[] {"help", handler.getName()}, ProcessStream.system());
+        new Main().run(new String[] {"help", handler.getName()}, new ProcessStream(in(""), nullOutputStream, nullOutputStream));
 
         HelpCommand.printUsage(handler, ps);
 
         return out.toString();
     }
+
+    public static String getGroovyBindingUsage() {
+        try {
+            // PWD is /target/site/apidocs
+            Process process = new ProcessBuilder("../../../dumpling.sh", "groovy").redirectError(Redirect.INHERIT).start();
+
+            new PrintStream(process.getOutputStream()).append("D\n").close();;
+
+            assert process.waitFor() != 0;
+
+            try (java.util.Scanner s = new java.util.Scanner(process.getInputStream())) {
+                return s.useDelimiter("\\A").hasNext() ? s.next() : "";
+            }
+        } catch (IOException | InterruptedException ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    private static @Nonnull InputStream in(String in) {
+        try {
+            return new ByteArrayInputStream(in.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    private static final @Nonnull PrintStream nullOutputStream = new PrintStream(new OutputStream() {
+        @Override public void write(int b) throws IOException {}
+    });
 }
