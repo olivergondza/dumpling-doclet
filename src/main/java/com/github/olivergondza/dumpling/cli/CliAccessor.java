@@ -23,53 +23,42 @@
  */
 package com.github.olivergondza.dumpling.cli;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.ProcessBuilder.Redirect;
-import java.util.Set;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CliAccessor {
 
-    public static Set<? extends CliCommand> handlers() {
-        return CliCommandOptionHandler.getAllHandlers();
-    }
+    public static Map<String, String> getCommandUsages() {
+        String handlers = runDumplingCli("CliCommandOptionHandler.getAllHandlers().collect { it.getClass().simpleName }.join(',')", "groovy");
 
-    public static @CheckForNull CliCommand getHandler(String className) {
-        for (CliCommand handler: handlers()) {
-            if (handler.getClass().getCanonicalName().equals(className)) {
-                return handler;
-            }
+        Map<String, String> usage = new HashMap<>();
+        for (String s : handlers.trim().split(",")) {
+            usage.put(s, runDumplingCli(null, "help", s));
         }
-
-        return null;
-    }
-
-    public static String usage(CliCommand handler) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(out);
-
-        // Run just to register option handlers
-        new Main().run(new String[] {"help", handler.getName()}, new ProcessStream(in(""), nullOutputStream, nullOutputStream));
-
-        HelpCommand.printUsage(handler, ps);
-
-        return out.toString();
+        return usage;
     }
 
     public static String getGroovyBindingUsage() {
-        try {
-            // PWD is /target/site/apidocs
-            Process process = new ProcessBuilder("../../../dumpling.sh", "groovy").redirectError(Redirect.INHERIT).start();
+        return runDumplingCli("D", "groovy");
+    }
 
-            new PrintStream(process.getOutputStream()).append("D\n").close();;
+    private static String runDumplingCli(String stdin, String... args) {
+        List<String> argList = new ArrayList<>();
+        argList.add(dumplingSh().getAbsolutePath());
+        argList.addAll(Arrays.asList(args));
+        try {
+            Process process = new ProcessBuilder(argList).redirectError(Redirect.INHERIT).start();
+
+            if (stdin != null) {
+                new PrintStream(process.getOutputStream()).append(stdin).append('\n').close();
+            }
 
             assert process.waitFor() != 0;
 
@@ -81,15 +70,15 @@ public class CliAccessor {
         }
     }
 
-    private static @Nonnull InputStream in(String in) {
-        try {
-            return new ByteArrayInputStream(in.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException ex) {
-            throw new AssertionError(ex);
-        }
-    }
+    private static File dumplingSh() {
+        File current = new File(".").getAbsoluteFile();
+        do {
+            File script = new File(current, "dumpling.sh");
+            if (script.exists()) return script;
 
-    private static final @Nonnull PrintStream nullOutputStream = new PrintStream(new OutputStream() {
-        @Override public void write(int b) throws IOException {}
-    });
+            current = current.getParentFile();
+        } while (current != null);
+
+        throw new Error(new File(".").getAbsoluteFile() + " does not seem to be dumpling subdirectory");
+    }
 }

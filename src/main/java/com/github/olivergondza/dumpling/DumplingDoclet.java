@@ -29,9 +29,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.github.olivergondza.dumpling.cli.CliAccessor;
-import com.github.olivergondza.dumpling.cli.CliCommand;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.MethodDoc;
@@ -44,17 +44,14 @@ public class DumplingDoclet {
     public static boolean start(RootDoc root) {
         final File target = new File(".");
 
-        final List<ClassDoc> cliCommands = new ArrayList<ClassDoc>();
-        final List<ClassDoc> factories = new ArrayList<ClassDoc>();
-        final List<ClassDoc> queries = new ArrayList<ClassDoc>();
-        final List<MethodDoc> threadPredicates = new ArrayList<MethodDoc>();
+        final List<ClassDoc> factories = new ArrayList<>();
+        final List<ClassDoc> queries = new ArrayList<>();
+        final List<MethodDoc> threadPredicates = new ArrayList<>();
 
         for (ClassDoc cls: root.classes()) {
             // Sort classes
             for (Type iface: cls.interfaceTypes()) {
-                if ("CliCommand".equals(iface.typeName())) {
-                    cliCommands.add(cls);
-                } else if ("SingleThreadSetQuery".equals(iface.typeName())) {
+                if ("SingleThreadSetQuery".equals(iface.typeName())) {
                     queries.add(cls);
                 } else if ("CliRuntimeFactory".equals(iface.typeName())) {
                     factories.add(cls);
@@ -73,7 +70,7 @@ public class DumplingDoclet {
             }
         }
 
-        printCli(new File(target, "cliCommands.md"), cliCommands, "CLI Commands");
+        printCli(new File(target, "cliCommands.md"), "CLI Commands");
         printDoc(new File(target, "factories.md"), factories, "Runtime factories");
         printDoc(new File(target, "queries.md"), queries, "Predefined queries");
         printDoc(new File(target, "threadPredicates.md"), threadPredicates, "Thread predicates");
@@ -108,15 +105,15 @@ public class DumplingDoclet {
         }
     }
 
-    private static void printCli(File out, List<ClassDoc> docs, String title) {
+    private static void printCli(File out, String title) {
         try (FileWriter writer = new FileWriter(out)) {
-
             header(writer, title);
-            for (ClassDoc d: docs) {
-                CliCommand command = instantiateComand(d);
-                writer.write("### "); writer.write(javadocLink(d, "`" + command.getName() + "`")); writer.write("\n");
+            for (Map.Entry<String, String> command : CliAccessor.getCommandUsages().entrySet()) {
+                String name = command.getKey();
+                String usage = command.getValue();
+                writer.write("### "); writer.write("`" + name + "`"); writer.write("\n");
                 writer.write("\n<pre style='word-wrap: break-word'>\n");
-                writer.write(CliAccessor.usage(command));
+                writer.write(usage);
                 writer.write("\n</pre>\n");
             }
         } catch (IOException ex) {
@@ -129,10 +126,6 @@ public class DumplingDoclet {
      */
     private static String commentText(Doc doc) {
         return doc.commentText().replaceAll("\\{@\\w+ (.*)\\}", "$1");
-    }
-
-    private static CliCommand instantiateComand(ClassDoc d) {
-        return CliAccessor.getHandler(d.qualifiedTypeName());
     }
 
     private static String javadocLink(Doc element, String title) {
