@@ -15,10 +15,5 @@
       <artifactId>maven-jdk-tools-wrapper</artifactId>
       <version>0.1</version>
     </dependency>
-    <dependency>
-      <groupId>com.github.olivergondza</groupId>
-      <artifactId>dumpling</artifactId>
-      <version>RELEASE</version>
-    </dependency>
   </dependencies>
 </project>

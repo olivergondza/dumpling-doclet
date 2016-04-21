@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.github.olivergondza.dumpling.cli;
+package com.github.olivergondza.dumpling;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.Map;
 public class CliAccessor {
 
     public static Map<String, String> getCommandUsages() {
-        String handlers = runDumplingCli("CliCommandOptionHandler.getAllHandlers().collect { it.getClass().simpleName }.join(',')", "groovy");
+        String handlers = runDumplingCli("CliCommandOptionHandler.getAllHandlers().collect { it.name }.join(',')", "groovy");
 
         Map<String, String> usage = new HashMap<>();
         for (String s : handlers.trim().split(",")) {
