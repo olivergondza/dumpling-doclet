@@ -28,6 +28,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -70,12 +71,26 @@ public class DumplingDoclet {
         }
 
         printCli(new File(target, "cliCommands.md"), "CLI Commands");
-        printDoc(new File(target, "factories.md"), factories, "Runtime factories");
+        printFactories(new File(target, "factories.md"));
         printDoc(new File(target, "queries.md"), queries, "Predefined queries");
         printDoc(new File(target, "threadPredicates.md"), threadPredicates, "Thread predicates");
         printGroovyDoc(new File(target, "cliExports.md"));
 
         return true;
+    }
+
+    private static void printFactories(File out) {
+        List<String[]> usage = CliAccessor.getFactoriesUsages();
+        try (FileWriter writer = new FileWriter(out)) {
+            header(writer, "Runtime factories");
+
+            for (String[] strings : usage) {
+                writer.write("### "); writer.write(javadocLink(strings[0], strings[1])); writer.write('\n');
+                writer.write(strings[2]); writer.write('\n');
+            }
+        } catch (IOException ex) {
+            throw new AssertionError(ex);
+        }
     }
 
     private static void printGroovyDoc(File out) {
@@ -155,6 +170,11 @@ public class DumplingDoclet {
 
             throw new AssertionError();
         }
+    }
+
+    private static String javadocLink(String symbol, String title) {
+        symbol = symbol.replace(".", "/");
+        return String.format("[%s](./apidocs/%s.html)", title, symbol);
     }
 
     private static void header(Writer writer, String title) throws IOException {

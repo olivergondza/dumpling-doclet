@@ -35,6 +35,15 @@ import java.util.Map;
 
 public class CliAccessor {
 
+    public static List<String[]> getFactoriesUsages() {
+        String factories = runDumplingCli("Main.ProcessRuntimeOptionHandler.factories.each { println \"${it.class.name}:${it.kind}:${it.description}\" }; return null;", "groovy");
+        List<String[]> usage = new ArrayList<>();
+        for (String s : factories.trim().split("\n")) {
+            usage.add(s.split(":", 3));
+        }
+        return usage;
+    }
+
     public static Map<String, String> getCommandUsages() {
         String handlers = runDumplingCli("CliCommandOptionHandler.getAllHandlers().collect { it.name }.join(',')", "groovy");
 
