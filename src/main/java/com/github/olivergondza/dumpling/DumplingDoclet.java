@@ -28,7 +28,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -85,8 +84,8 @@ public class DumplingDoclet {
             header(writer, "Runtime factories");
 
             for (String[] strings : usage) {
-                writer.write("### "); writer.write(javadocLink(strings[0], strings[1])); writer.write('\n');
-                writer.write(strings[2]); writer.write('\n');
+                writer.write("\n## "); writer.write(strings[0]); writer.write('\n');
+                writer.write(strings[1]); writer.write('\n');
             }
         } catch (IOException ex) {
             throw new AssertionError(ex);
@@ -98,9 +97,9 @@ public class DumplingDoclet {
 
         try (FileWriter writer = new FileWriter(out)) {
             header(writer, "Groovy CLI exposed API");
-            writer.write("```\n");
+            writer.write("\n```\n");
             writer.write(usage);
-            writer.write("```\n");
+            writer.write("\n```\n");
         } catch (IOException ex) {
             throw new AssertionError(ex);
         }
@@ -111,7 +110,7 @@ public class DumplingDoclet {
 
             header(writer, title);
             for (Doc d: docs) {
-                writer.write("### "); writer.write(javadocLink(d, d.name())); writer.write('\n');
+                writer.write("\n## "); writer.write(javadocLink(d, d.name())); writer.write('\n');
                 writer.write(commentText(d)); writer.write('\n');
             }
         } catch (IOException ex) {
@@ -125,8 +124,8 @@ public class DumplingDoclet {
             for (Map.Entry<String, String> command : CliAccessor.getCommandUsages().entrySet()) {
                 String name = command.getKey();
                 String usage = command.getValue();
-                writer.write("### "); writer.write("`" + name + "`"); writer.write("\n");
-                writer.write("\n<pre style='word-wrap: break-word'>\n");
+                writer.write("\n## "); writer.write(name); writer.write("\n");
+                writer.write("\n<pre style='word-wrap: break-word; white-space: pre-wrap;'>\n");
                 writer.write(usage);
                 writer.write("\n</pre>\n");
             }
@@ -183,6 +182,6 @@ public class DumplingDoclet {
         writer.write("layout: default\n");
         writer.write("---\n");
         writer.write("[Reference documentation for TAG](.)\n");
-        writer.write("# {{page.title}}\n");
+        writer.write("\n# {{page.title}}\n");
     }
 }

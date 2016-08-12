@@ -29,25 +29,25 @@ import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class CliAccessor {
 
     public static List<String[]> getFactoriesUsages() {
-        String factories = runDumplingCli("Main.ProcessRuntimeOptionHandler.factories.each { println \"${it.class.name}:${it.kind}:${it.description}\" }; return null;", "groovy");
+        String factories = runDumplingCli("Main.ProcessRuntimeOptionHandler.factories.each { println \"${it.kind}:${it.description}\" }; return null;", "groovy");
         List<String[]> usage = new ArrayList<>();
         for (String s : factories.trim().split("\n")) {
-            usage.add(s.split(":", 3));
+            usage.add(s.split(":", 2));
         }
         return usage;
     }
 
     public static Map<String, String> getCommandUsages() {
-        String handlers = runDumplingCli("CliCommandOptionHandler.getAllHandlers().collect { it.name }.join(',')", "groovy");
+        String handlers = runDumplingCli("CliCommandOptionHandler.getAllHandlers().collect { it.name }.sort().join(',')", "groovy");
 
-        Map<String, String> usage = new HashMap<>();
+        Map<String, String> usage = new LinkedHashMap<>();
         for (String s : handlers.trim().split(",")) {
             usage.put(s, runDumplingCli(null, "help", s));
         }
